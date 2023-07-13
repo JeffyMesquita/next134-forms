@@ -1,6 +1,50 @@
 'use client';
 
+import { SubmitErrorHandler, SubmitHandler, useForm } from 'react-hook-form';
+
+type FormData = {
+	name: string;
+	role: string;
+	company: string;
+	email: string;
+	phoneNumber: number;
+	message: string;
+};
+
 export default function Home() {
+	const mockAPI = async () => {
+		return new Promise<FormData>((resolve, reject) => {
+			setTimeout(() => {
+				resolve({
+					name: 'John Doe',
+					role: 'CEO',
+					company: 'John Doe Company',
+					email: 'someemail@email.com',
+					phoneNumber: 1234567890,
+					message:
+						'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, quam urna aliquet nisl, qu',
+				});
+			}, 2000);
+		});
+	};
+
+	const {
+		handleSubmit,
+		register,
+		formState: { errors },
+	} = useForm<FormData>({
+		defaultValues: async () => await mockAPI(),
+		mode: 'onBlur',
+	});
+
+	const onSubmit: SubmitHandler<FormData> = (data: FormData) => {
+		console.log(data);
+	};
+
+	const onError: SubmitErrorHandler<FormData> = (errors) => {
+		console.log(errors);
+	};
+
 	return (
 		<div className='isolate bg-white px-6 py-2 sm:py-4 lg:px-8'>
 			<div
@@ -24,25 +68,36 @@ export default function Home() {
 				</p>
 			</div>
 			<form
-				action='#'
-				method='POST'
+				onSubmit={handleSubmit(onSubmit, onError)}
 				className='mx-auto mt-16 max-w-xl sm:mt-20'
 			>
 				<div className='grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2'>
 					<div>
 						<label
-							htmlFor='firstName'
+							htmlFor='name'
 							className='block text-sm font-semibold leading-6 text-gray-900'
 						>
 							Nome
 						</label>
 						<div className='mt-2.5'>
 							<input
+								{...register('name', {
+									required: 'Nome é obrigatório',
+									minLength: {
+										value: 10,
+										message: 'Nome deve ter no mínimo 10 caracteres',
+									},
+								})}
 								type='text'
-								name='firstName'
+								name='name'
 								autoComplete='given-name'
 								className='block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
 							/>
+							{errors.name && (
+								<span className='text-red-500 text-xs'>
+									{errors.name.message}
+								</span>
+							)}
 						</div>
 					</div>
 					<div>
